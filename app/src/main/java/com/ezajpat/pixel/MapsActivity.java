@@ -48,19 +48,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap = googleMap;
 
         LatLng manufaktura = new LatLng(51.779768, 19.448147);
-        mMap.addMarker(new MarkerOptions().position(manufaktura).title("PIXEL ŁÓDŹ MANUFAKTURA"));
+        mMap.addMarker(new MarkerOptions().position(manufaktura).title("PIXEL ŁÓDŹ MANUFAKTURA")).setSnippet("Drewnowska 58, 50-363 Łódź, tel. 732 194 952");
 
         LatLng forum = new LatLng(54.349330, 18.643495);
-        mMap.addMarker(new MarkerOptions().position(forum).title("PIXEL FORUM GDAŃSK"));
+        mMap.addMarker(new MarkerOptions().position(forum).title("PIXEL FORUM GDAŃSK")).setSnippet("Targ Sienny 7, 80-806 Gdańsk, tel. 511 415 666");
 
         LatLng tarasy = new LatLng(52.230082, 21.002869);
-        mMap.addMarker(new MarkerOptions().position(tarasy).title("PIXEL ZŁOTE TARASY"));
+        mMap.addMarker(new MarkerOptions().position(tarasy).title("PIXEL ZŁOTE TARASY")).setSnippet("Złota 59, 00-120 Warszawa, tel. 505 427 132");
 
         LatLng posnania = new LatLng(52.396409, 16.955593);
-        mMap.addMarker(new MarkerOptions().position(posnania).title("PIXEL POSNANIA"));
+        mMap.addMarker(new MarkerOptions().position(posnania).title("PIXEL POSNANIA")).setSnippet("Pleszewska 1, 61-139 Poznań, tel. 739 902 171");
 
         LatLng dworzec = new LatLng(50.257214, 19.023712);
-        mMap.addMarker(new MarkerOptions().position(dworzec).title("PIXEL STARY DWORZEC"));
+        mMap.addMarker(new MarkerOptions().position(dworzec).title("PIXEL STARY DWORZEC")).setSnippet("Dworcowa 4, 40-001 Katowice, tel. 505 427 123");
 
 
 

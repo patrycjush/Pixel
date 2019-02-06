@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity
     private MyCustomAdapter mAdapter;
 
     private ArrayList<String> mProducts = new ArrayList<String>();
-    private Map<String, Integer> mCheckout = new HashMap<String, Integer>();
+    private Map<Integer, Integer> mCheckout = new HashMap<Integer, Integer>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,22 +91,17 @@ public class MainActivity extends AppCompatActivity
                 String name;
                 String additives;
                 String price;
-                String productID;
+                int productID;
 
                 // CHECKOUT
                 for (DataSnapshot ds1 : dataSnapshot.getChildren()) {
                     if (ds1.getKey().equals("Checkout")) {
                         for (DataSnapshot ds2 : ds1.getChildren()) {
                             if(ds2.getKey().equals(userID)) {
-                                /*for (DataSnapshot ds3 : ds2.getChildren()) {
-                                    productID = ds3.getKey();
-                                    System.out.println("productID " + productID);
-                                    if(mCheckout.containsKey(productID)) {
-                                        mCheckout.put(productID, Integer.parseInt(ds3.child("count").getValue().toString()));
-                                        System.out.println("productID " + productID);
-                                    }
-                                    System.out.println("mCheckout w " + mCheckout.get(productID));
-                                }*/
+                                for (DataSnapshot ds3 : ds2.getChildren()) {
+                                    productID = Integer.parseInt(ds3.getKey());
+                                    mCheckout.put(productID, Integer.parseInt(ds3.child("count").getValue().toString()));
+                                }
                             }
                         }
                     }
@@ -117,15 +112,19 @@ public class MainActivity extends AppCompatActivity
                     for (DataSnapshot ds1 : dataSnapshot.getChildren()) {
                         if (ds1.getKey().equals("Menu")) {
                             for (DataSnapshot ds2 : ds1.getChildren()) {
-                                name = "#" + ds2.child("name").getValue().toString();
-                                mAdapter.addSectionHeaderItem(name);
-                                mProducts.add("nonclickable");
-                                for (DataSnapshot ds3 : ds2.child("items").getChildren()) {
-                                    name = ds3.child("name").getValue().toString();
-                                    additives = ds3.child("additives").getValue().toString();
-                                    price = ds3.child("price").getValue().toString() + ",00 zł | +";
-                                    mAdapter.addItem(name, additives, price);
-                                    mProducts.add("{\"name\": \"" + name + "\",\"additives\": \"" + additives + "\", \"price\": \"" + ds3.child("price").getValue().toString() + "\"}");
+                                if (ds2.child("name").getValue().toString().equals("Łódź")) {
+                                    for (DataSnapshot ds3 : ds2.child("items").getChildren()) {
+                                        name = "#" + ds3.child("name").getValue().toString();
+                                        mAdapter.addSectionHeaderItem(name);
+                                        mProducts.add("nonclickable");
+                                        for (DataSnapshot ds4 : ds3.child("items").getChildren()) {
+                                            name = ds4.child("name").getValue().toString();
+                                            additives = ds4.child("additives").getValue().toString();
+                                            price = ds4.child("price").getValue().toString() + ",00 zł | +";
+                                            mAdapter.addItem(name, additives, price);
+                                            mProducts.add("{\"name\": \"" + name + "\",\"additives\": \"" + additives + "\", \"price\": \"" + ds4.child("price").getValue().toString() + "\"}");
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -155,19 +154,13 @@ public class MainActivity extends AppCompatActivity
                                 myRefWrite.child("additives").setValue(additives);
                                 myRefWrite.child("price").setValue(price);
 
-                                myRefWrite.child("count").setValue(1);
-                                /*
-                                if(mCheckout.containsKey(String.valueOf(position))) {
-                                    mCheckout.put(String.valueOf(position), mCheckout.get(position) + 1);
+                                if(mCheckout.containsKey(position)) {
+                                    mCheckout.put(position, mCheckout.get(position) + 1);
                                     myRefWrite.child("count").setValue(mCheckout.get(position));
-                                    System.out.println("===== 1");
                                 } else {
-                                    mCheckout.put(String.valueOf(position), 1);
+                                    mCheckout.put(position, 1);
                                     myRefWrite.child("count").setValue(1);
-                                    System.out.println("===== 2");
-                                    System.out.println("mCheckout " + mCheckout.get("5"));
                                 }
-                                */
 
                                 Toast.makeText(MainActivity.this, "Dodano do koszyka: " + name, Toast.LENGTH_LONG).show();
                             }
