@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <group android:id="@+id/group_order">
+        <item
+            android:id="@+id/nav_orders"
+            android:icon="@drawable/ic_package"
+            android:title="Zamówienia" />
+    </group>
+
+    <group android:id="@+id/group_company">
+        <item
+            android:id="@+id/nav_map"
+            android:icon="@drawable/ic_map_pin"
+            android:title="Nasze Restauracje" />
+        <item
+            android:id="@+id/nav_info"
+            android:icon="@drawable/ic_about"
+            android:title="O nas" />
+    </group>
+
+</menu>
