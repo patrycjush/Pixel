@@ -93,22 +93,23 @@ public class MainActivity extends AppCompatActivity
                 String price;
                 int productID;
 
-                // CHECKOUT
-                for (DataSnapshot ds1 : dataSnapshot.getChildren()) {
-                    if (ds1.getKey().equals("Checkout")) {
-                        for (DataSnapshot ds2 : ds1.getChildren()) {
-                            if(ds2.getKey().equals(userID)) {
-                                for (DataSnapshot ds3 : ds2.getChildren()) {
-                                    productID = Integer.parseInt(ds3.getKey());
-                                    mCheckout.put(productID, Integer.parseInt(ds3.child("count").getValue().toString()));
+                // MENU
+                if (listView.getAdapter() == null) {
+
+                    // STORE CHECKOUT COUNT
+                    for (DataSnapshot ds1 : dataSnapshot.getChildren()) {
+                        if (ds1.getKey().equals("Checkout")) {
+                            for (DataSnapshot ds2 : ds1.getChildren()) {
+                                if(ds2.getKey().equals(userID)) {
+                                    for (DataSnapshot ds3 : ds2.getChildren()) {
+                                        productID = Integer.parseInt(ds3.getKey());
+                                        mCheckout.put(productID, Integer.parseInt(ds3.child("count").getValue().toString()));
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-                // MENU
-                if (listView.getAdapter() == null) {
                     for (DataSnapshot ds1 : dataSnapshot.getChildren()) {
                         if (ds1.getKey().equals("Menu")) {
                             for (DataSnapshot ds2 : ds1.getChildren()) {
