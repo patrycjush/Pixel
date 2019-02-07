@@ -93,13 +93,17 @@ public class OrdersActivity extends AppCompatActivity {
                     for (DataSnapshot ds1 : dataSnapshot.getChildren()) {
                         if (ds1.getKey().equals("Orders")) {
                             for (DataSnapshot ds2 : ds1.getChildren()) {
-                                name = "#" + ds2.getKey();
-                                mAdapter.addSectionHeaderItem(name);
-                                name = ds2.child("name").getValue().toString();
-                                additives = ds2.child("additives").getValue().toString();
-                                price = ds2.child("price").getValue().toString() + ",00 zł";
-                                mAdapter.addItem(name, additives, price);
-                                mProductsOrders.add("{\"name\": \"" + name + "\",\"additives\": \"" + additives + "\", \"price\": \"" + ds2.child("price").getValue().toString() + "\"}");
+                                if (ds2.getKey().equals(userID)) {
+                                    for (DataSnapshot ds3 : ds2.getChildren()) {
+                                        name = "#" + ds3.getKey();
+                                        mAdapter.addSectionHeaderItem(name);
+                                        name = ds3.child("name").getValue().toString();
+                                        additives = ds3.child("additives").getValue().toString();
+                                        price = ds3.child("price").getValue().toString() + ",00 zł";
+                                        mAdapter.addItem(name, additives, price);
+                                        mProductsOrders.add("{\"name\": \"" + name + "\",\"additives\": \"" + additives + "\", \"price\": \"" + ds3.child("price").getValue().toString() + "\"}");
+                                    }
+                                }
                             }
                         }
                     }

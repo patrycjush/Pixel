@@ -113,11 +113,13 @@ public class SummaryActivity extends AppCompatActivity {
                 if (checkedId == R.id.radio_item_delivery) {
                     delivery = true;
                     amount = Integer.parseInt(tvAmount.getText().toString().split(",")[0]) + 11;
+                    tvDeliveryPrice.setText("11,00 zł");
                     tvAmount.setText(amount + ",00 zł");
                 } else {
                     if(delivery && amount != 0) {
                         delivery = false;
                         amount = Integer.parseInt(tvAmount.getText().toString().split(",")[0]) - 11;
+                        tvDeliveryPrice.setText("0,00 zł");
                         tvAmount.setText(amount + ",00 zł");
                     }
                 }
@@ -181,7 +183,7 @@ public class SummaryActivity extends AppCompatActivity {
                                         }
                                     });
 
-                                    myRefWrite = mFirebaseDatabase.getReference().child("Orders").child(orderID);
+                                    myRefWrite = mFirebaseDatabase.getReference().child("Orders").child(userID).child(orderID);
                                     myRefWrite.child("name").setValue(dateFormat.format(date));
                                     myRefWrite.child("additives").setValue("-");
                                     myRefWrite.child("price").setValue(String.valueOf(amount));

@@ -117,10 +117,11 @@ public class CheckoutActivity extends AppCompatActivity {
                     for (DataSnapshot ds1 : dataSnapshot.getChildren()) {
                         if (ds1.getKey().equals("Checkout")) {
                             for (DataSnapshot ds2 : ds1.getChildren()) {
-                                name = "#" + ds2.getKey();
-                                mAdapter.addSectionHeaderItem(name);
-                                mProductsCheckout.add("nonclickable");
-                                if (ds2.getKey().equals(userID)) {
+                                    if (ds2.getKey().equals(userID)) {
+                                    name = "#" + ds2.getKey();
+                                    mAdapter.addSectionHeaderItem(name);
+                                    mProductsCheckout.add("nonclickable");
+
                                     for (DataSnapshot ds3 : ds2.getChildren()) {
                                         // System.out.println(" Name = " + ds3.child("name").getValue().toString());
                                         productID = ds3.getKey();
