@@ -61,6 +61,8 @@ public class MainActivity extends AppCompatActivity
     private ArrayList<String> mNames = new ArrayList<String>();
     private Map<Integer, Integer> mCheckout = new HashMap<Integer, Integer>();
 
+    private ArrayList<Restaurant> restaurants = new ArrayList<Restaurant>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -124,12 +126,19 @@ public class MainActivity extends AppCompatActivity
                         }
                     }
 
+                    int counter = 0;
                     for (DataSnapshot ds1 : dataSnapshot.getChildren()) {
                         if (ds1.getKey().equals("Menu")) {
                             for (DataSnapshot ds2 : ds1.getChildren()) {
                                 first = true;
+                                restaurants.add(new Restaurant());
                                 for (DataSnapshot ds3 : ds2.child("items").getChildren()) {
                                     name = "#" + ds3.child("name").getValue().toString();
+
+                                    restaurants.get(counter).mNames.add(name);
+                                    restaurants.get(counter).mAdditives.add("-");
+                                    restaurants.get(counter).mPrices.add("-");
+                                    restaurants.get(counter).mProducts.add("nonclickable");
 
                                     if (ds2.child("name").getValue().toString().equals("Łódź")) {
                                         mAdapter.addSectionHeaderItem(name);
@@ -145,14 +154,20 @@ public class MainActivity extends AppCompatActivity
                                             mProducts.add("{\"name\": \"" + name + "\",\"additives\": \"" + additives + "\", \"price\": \"" + ds4.child("price").getValue().toString() + "\"}");
                                         }
 
-                                        if(first) {
+                                        if (first) {
                                             mSpecialProducts.add("{\"name\": \"" + name + "\",\"additives\": \"" + additives + "\", \"price\": \"" + ds4.child("price").getValue().toString() + "\"}");
                                             mRestaurants.add(ds2.child("name").getValue().toString());
                                             mNames.add(name);
                                             first = false;
                                         }
+
+                                        restaurants.get(counter).mNames.add(name);
+                                        restaurants.get(counter).mAdditives.add(additives);
+                                        restaurants.get(counter).mPrices.add(price);
+                                        restaurants.get(counter).mProducts.add("{\"name\": \"" + name + "\",\"additives\": \"" + additives + "\", \"price\": \"" + ds4.child("price").getValue().toString() + "\"}");
                                     }
                                 }
+                                counter++;
                             }
                         }
                     }
@@ -266,8 +281,12 @@ public class MainActivity extends AppCompatActivity
                 public void onClick(DialogInterface dialog, int which) {
                     mCheckout.clear();
                     restaurant = which;
-                    mProducts.set(1, mSpecialProducts.get(which));
-                    mAdapter.mItems.set(1, mNames.get(which));
+
+                    mAdapter.mItems = restaurants.get(which).mNames;
+                    mAdapter.mAdditives = restaurants.get(which).mAdditives;
+                    mAdapter.mPrices = restaurants.get(which).mPrices;
+                    mProducts = restaurants.get(which).mProducts;
+
                     listView.setAdapter(mAdapter);
 
                     myRefWrite = mFirebaseDatabase.getReference().child("Checkout").child(userID);
