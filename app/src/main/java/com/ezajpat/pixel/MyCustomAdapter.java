@@ -15,10 +15,10 @@ class MyCustomAdapter extends BaseAdapter {
     private static final int TYPE_ITEM = 0;
     private static final int TYPE_SEPARATOR = 1;
 
-    private ArrayList<String> mItems = new ArrayList<String>();
-    private ArrayList<String> mAdditives = new ArrayList<String>();
-    private ArrayList<String> mPrices = new ArrayList<String>();
-    private TreeSet<Integer> sectionHeader = new TreeSet<Integer>();
+    ArrayList<String> mItems = new ArrayList<String>();
+    ArrayList<String> mAdditives = new ArrayList<String>();
+    ArrayList<String> mPrices = new ArrayList<String>();
+    TreeSet<Integer> sectionHeader = new TreeSet<Integer>();
 
     private LayoutInflater mInflater;
 

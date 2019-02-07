@@ -1,5 +1,7 @@
 package com.ezajpat.pixel;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -11,6 +13,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -43,6 +46,9 @@ public class MainActivity extends AppCompatActivity
     private FirebaseAuth.AuthStateListener mAuthListener;
     private DatabaseReference myRefRead, myRefWrite;
     private String userID;
+    private String orderID ;
+    private Boolean first;
+    private int restaurant = 2;
 
     //list
     ListView listView;
@@ -50,6 +56,9 @@ public class MainActivity extends AppCompatActivity
     private MyCustomAdapter mAdapter;
 
     private ArrayList<String> mProducts = new ArrayList<String>();
+    private ArrayList<String> mSpecialProducts = new ArrayList<String>();
+    private ArrayList<String> mRestaurants = new ArrayList<String>();
+    private ArrayList<String> mNames = new ArrayList<String>();
     private Map<Integer, Integer> mCheckout = new HashMap<Integer, Integer>();
 
     @Override
@@ -82,12 +91,17 @@ public class MainActivity extends AppCompatActivity
             }
         };
 
+        Intent intent = getIntent();
+        orderID = intent.getStringExtra("ORDER_ID");
+        if(orderID != null) {
+            myRefWrite = mFirebaseDatabase.getReference().child("Checkout").child(orderID);
+            myRefWrite.removeValue();
+            mCheckout.clear();
+        }
+
         myRefRead.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                // This method is called once with the initial value and again
-                // whenever data at this location is updated.
-
                 String name;
                 String additives;
                 String price;
@@ -113,23 +127,37 @@ public class MainActivity extends AppCompatActivity
                     for (DataSnapshot ds1 : dataSnapshot.getChildren()) {
                         if (ds1.getKey().equals("Menu")) {
                             for (DataSnapshot ds2 : ds1.getChildren()) {
-                                if (ds2.child("name").getValue().toString().equals("Łódź")) {
-                                    for (DataSnapshot ds3 : ds2.child("items").getChildren()) {
-                                        name = "#" + ds3.child("name").getValue().toString();
+                                first = true;
+                                for (DataSnapshot ds3 : ds2.child("items").getChildren()) {
+                                    name = "#" + ds3.child("name").getValue().toString();
+
+                                    if (ds2.child("name").getValue().toString().equals("Łódź")) {
                                         mAdapter.addSectionHeaderItem(name);
                                         mProducts.add("nonclickable");
-                                        for (DataSnapshot ds4 : ds3.child("items").getChildren()) {
-                                            name = ds4.child("name").getValue().toString();
-                                            additives = ds4.child("additives").getValue().toString();
-                                            price = ds4.child("price").getValue().toString() + ",00 zł | +";
+                                    }
+                                    for (DataSnapshot ds4 : ds3.child("items").getChildren()) {
+                                        name = ds4.child("name").getValue().toString();
+                                        additives = ds4.child("additives").getValue().toString();
+                                        price = ds4.child("price").getValue().toString() + ",00 zł | +";
+
+                                        if (ds2.child("name").getValue().toString().equals("Łódź")) {
                                             mAdapter.addItem(name, additives, price);
                                             mProducts.add("{\"name\": \"" + name + "\",\"additives\": \"" + additives + "\", \"price\": \"" + ds4.child("price").getValue().toString() + "\"}");
+                                        }
+
+                                        if(first) {
+                                            mSpecialProducts.add("{\"name\": \"" + name + "\",\"additives\": \"" + additives + "\", \"price\": \"" + ds4.child("price").getValue().toString() + "\"}");
+                                            mRestaurants.add(ds2.child("name").getValue().toString());
+                                            mNames.add(name);
+                                            first = false;
                                         }
                                     }
                                 }
                             }
                         }
                     }
+
+                    System.out.println(mRestaurants);
 
                     listView.setAdapter(mAdapter);
                     listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -213,24 +241,43 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    /*
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
-    */
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_location) {
+            String[] items = new String[mRestaurants.size()];
+            items = mRestaurants.toArray(items);
+
+            AlertDialog.Builder b = new AlertDialog.Builder(this);
+            b.setTitle("Wybierz lokal");
+            b.setSingleChoiceItems(items, restaurant, new DialogInterface.OnClickListener() {
+
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    mCheckout.clear();
+                    restaurant = which;
+                    mProducts.set(1, mSpecialProducts.get(which));
+                    mAdapter.mItems.set(1, mNames.get(which));
+                    listView.setAdapter(mAdapter);
+
+                    myRefWrite = mFirebaseDatabase.getReference().child("Checkout").child(userID);
+                    myRefWrite.removeValue();
+                    dialog.dismiss();
+                }
+
+            });
+
+            b.show();
             return true;
         }
 

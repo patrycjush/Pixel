@@ -23,7 +23,12 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CheckoutActivity extends AppCompatActivity {
 
@@ -35,13 +40,15 @@ public class CheckoutActivity extends AppCompatActivity {
     private FirebaseAuth.AuthStateListener mAuthListener;
     private DatabaseReference myRefRead, myRefWrite;
     private String userID;
+    private int amount = 0;
 
     //list
     ListView listView;
 
     private MyCustomAdapter mAdapter;
 
-    private ArrayList<String> mProducts = new ArrayList<String>();
+    private ArrayList<String> mProductsCheckout = new ArrayList<String>();
+    private Map<Integer, Integer> mCheckout = new HashMap<Integer, Integer>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,28 +95,42 @@ public class CheckoutActivity extends AppCompatActivity {
         myRefRead.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                // This method is called once with the initial value and again
-                // whenever data at this location is updated.
-                // System.out.println(" Value = " + dataSnapshot.toString());
                 if (listView.getAdapter() == null) {
                     String name;
                     String additives;
                     String price;
+                    String productID;
+
+                    // STORE CHECKOUT COUNT
+                    for (DataSnapshot ds1 : dataSnapshot.getChildren()) {
+                        if (ds1.getKey().equals("Checkout")) {
+                            for (DataSnapshot ds2 : ds1.getChildren()) {
+                                if(ds2.getKey().equals(userID)) {
+                                    for (DataSnapshot ds3 : ds2.getChildren()) {
+                                        mCheckout.put(Integer.parseInt(ds3.getKey()), Integer.parseInt(ds3.child("count").getValue().toString()));
+                                    }
+                                }
+                            }
+                        }
+                    }
 
                     for (DataSnapshot ds1 : dataSnapshot.getChildren()) {
                         if (ds1.getKey().equals("Checkout")) {
                             for (DataSnapshot ds2 : ds1.getChildren()) {
                                 name = "#" + ds2.getKey();
                                 mAdapter.addSectionHeaderItem(name);
-                                mProducts.add("nonclickable");
+                                mProductsCheckout.add("nonclickable");
                                 if (ds2.getKey().equals(userID)) {
                                     for (DataSnapshot ds3 : ds2.getChildren()) {
                                         // System.out.println(" Name = " + ds3.child("name").getValue().toString());
+                                        productID = ds3.getKey();
                                         name = ds3.child("name").getValue().toString();
                                         additives = ds3.child("additives").getValue().toString();
                                         price = ds3.child("price").getValue().toString() + ",00 zł | " + ds3.child("count").getValue().toString();
                                         mAdapter.addItem(name, additives, price);
-                                        mProducts.add("{\"name\": \"" + name + "\",\"additives\": \"" + additives + "\", \"price\": \"" + ds3.child("price").getValue().toString() + "\"}");
+                                        mProductsCheckout.add("{\"productID\":\"" + productID + "\", \"name\": \"" + name + "\",\"additives\": \"" + additives + "\", \"price\": \"" + ds3.child("price").getValue().toString() + "\"}");
+
+                                        amount += Integer.parseInt(ds3.child("price").getValue().toString()) * Integer.parseInt(ds3.child("count").getValue().toString());
                                     }
                                 }
                             }
@@ -119,7 +140,50 @@ public class CheckoutActivity extends AppCompatActivity {
                     listView.setAdapter(mAdapter);
                     listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                            Toast.makeText(CheckoutActivity.this, "Usunięto z koszyka: ", Toast.LENGTH_LONG).show();
+                            if (!mProductsCheckout.get(position).equals("nonclickable")) {
+                                JSONObject reader = null;
+                                String productID = "";
+                                String name = "";
+                                String price = "";
+
+                                try {
+                                    reader = new JSONObject(mProductsCheckout.get(position));
+                                    productID = reader.getString("productID");
+                                    name = reader.getString("name");
+                                    price = reader.getString("price");
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+
+                                myRefWrite = mFirebaseDatabase.getReference().child("Checkout").child(userID).child(productID + "");
+                                if (mCheckout.containsKey(Integer.parseInt(productID))) {
+                                    if (mCheckout.get(Integer.parseInt(productID)) > 1) {
+                                        mCheckout.put(Integer.parseInt(productID), mCheckout.get(Integer.parseInt(productID)) - 1);
+                                        mAdapter.mPrices.set(position, price + ",00 zł | " + String.valueOf(mCheckout.get(Integer.parseInt(productID))));
+
+                                        myRefWrite.child("count").setValue(mCheckout.get(Integer.parseInt(productID)));
+                                    } else {
+                                        mCheckout.remove(position);
+                                        mAdapter.mItems.remove(position);
+                                        mAdapter.mAdditives.remove(position);
+                                        mAdapter.mPrices.remove(position);
+
+                                        myRefWrite.removeValue();
+                                    }
+
+                                    amount -= Integer.parseInt(price);
+
+                                    if (amount == 0) {
+                                        mCheckout.remove(0);
+                                        mAdapter.mItems.remove(0);
+                                        mAdapter.mAdditives.remove(0);
+                                        mAdapter.mPrices.remove(0);
+                                    }
+
+                                    listView.setAdapter(mAdapter);
+                                    Toast.makeText(CheckoutActivity.this, "Usunięto z koszyka: " + name, Toast.LENGTH_LONG).show();
+                                }
+                            }
                         }
                     });
                 }
@@ -136,7 +200,14 @@ public class CheckoutActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 // Snackbar.make(view, "W trakcie implementacji. Przycisk będzie przenosić użytkownika do podsumowania zamówienia :)", Snackbar.LENGTH_LONG).setAction("Action", null).show();
-                startActivity(new Intent(CheckoutActivity.this, SummaryActivity.class));
+                if (amount > 0) {
+                    Intent intent = new Intent(CheckoutActivity.this, SummaryActivity.class);
+                    intent.putExtra("AMOUNT", String.valueOf(amount));
+                    intent.putExtra("ORDER_ID", String.valueOf(userID));
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(CheckoutActivity.this, "Koszyk jest pusty, musisz dodać jakieś produkty!", Toast.LENGTH_LONG).show();
+                }
             }
         });
     }
